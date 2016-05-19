@@ -121,8 +121,12 @@ public abstract class Graph {
 	 * @return The degree sequence of this graph.
 	 */
 	public List<Integer> degreeSequence() {
-		// XXX: Implement in part 1 of week 1
-		return null;
+		List<Integer> list = new ArrayList<Integer>();
+		for(int i = 0; i < getNumVertices(); i++){
+			list.add(getNeighbors(i).size()+getInNeighbors(i).size());
+		}
+		Collections.sort(list, Collections.reverseOrder());
+		return list;
 	}
 	
 	/**
@@ -240,8 +244,14 @@ public abstract class Graph {
 		System.out.println("****");
 		System.out.println("Roads / intersections:");
 		GraphAdjList graphFromFile = new GraphAdjList();
-		GraphLoader.loadRoadMap("data/testdata/simpletest.map", graphFromFile);
+		GraphLoader.loadRoadMap("data/maps/ucsd.map", graphFromFile);
 		System.out.println(graphFromFile);
+		
+		//Test degree sequence method
+		List<Integer> test1 = graphFromFile.degreeSequence();
+		for(int i = 0; i < test1.size(); i++){
+			System.out.print(test1.get(i)+ " ");
+		}
 		
 		System.out.println("Observe all degrees are <= 12.");
 		System.out.println("****");
@@ -254,6 +264,10 @@ public abstract class Graph {
 		GraphAdjList airportGraph = new GraphAdjList();
 		GraphLoader.loadRoutes("data/airports/routesUA.dat", airportGraph);
 		System.out.println(airportGraph);
+		List<Integer> test2 = airportGraph.degreeSequence();
+		for(int i = 0; i < test2.size(); i++){
+			//System.out.print(test2.get(i)+ " ");
+		}
 		System.out.println("Observe most degrees are small (1-30), eight are over 100.");
 		System.out.println("****");
 		
