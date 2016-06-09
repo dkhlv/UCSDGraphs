@@ -244,7 +244,7 @@ public abstract class Graph {
 		System.out.println("****");
 		System.out.println("Roads / intersections:");
 		GraphAdjList graphFromFile = new GraphAdjList();
-		GraphLoader.loadRoadMap("data/testdata/simpletest.map", graphFromFile);
+		GraphLoader.loadRoadMap("data/maps/hollywood_large.map", graphFromFile);
 		System.out.println(graphFromFile);
 		
 		//Test degree sequence method

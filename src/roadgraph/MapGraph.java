@@ -9,9 +9,12 @@ package roadgraph;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -113,11 +116,27 @@ public class MapGraph {
 	public void addEdge(GeographicPoint from, GeographicPoint to, String roadName,
 			String roadType, double length) throws IllegalArgumentException {
 		//TODO: Implement this method in WEEK 2
-		if(!nodeMap.containsKey(from)|| !nodeMap.containsKey(to) || from==null || to ==null || roadName.isEmpty() || roadType.isEmpty() || length < 0 ){
+		if(!nodeMap.containsKey(from)|| !nodeMap.containsKey(to) || from==null || to ==null
+				|| roadName==null || roadType==null || length < 0 ){
 			throw new IllegalArgumentException();
 		}
 		MapEdge edge = new MapEdge(from, to, roadName, roadType);
 		nodeMap.get(from).getEdges().add(edge);
+	}
+	
+	/**
+	 * Get the neighbors of a specified vertex
+	 * @return The list of neighbors of a vertex.
+	 * @param vertex the name of a vertex
+	 */
+	public List<GeographicPoint> getNeighbors(GeographicPoint vertex)
+	{
+		List<GeographicPoint> neighbors = new ArrayList<GeographicPoint>();
+		List<MapEdge> edges = nodeMap.get(vertex).getEdges();
+		for(MapEdge e : edges){
+			neighbors.add(e.getEnd());
+		}
+		return neighbors;
 	}
 	
 
@@ -146,11 +165,39 @@ public class MapGraph {
 			 					     GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
 		// TODO: Implement this method in WEEK 2
+		//initialization
+		List<GeographicPoint> result = new ArrayList<GeographicPoint>(); 
+		Queue<GeographicPoint> queue = new LinkedList<GeographicPoint>();
+		HashSet<GeographicPoint> visited = new HashSet<GeographicPoint>();
+		HashMap<GeographicPoint, GeographicPoint> parent = new HashMap<GeographicPoint, GeographicPoint>();
+		
+		//algorithm follows
+		queue.add(start);
+		visited.add(start);
+		while(!queue.isEmpty()){
+			GeographicPoint curr = queue.remove();
+			if(curr.equals(goal)){
+				while(!goal.equals(start)){
+					result.add(goal);
+					goal = parent.get(goal);
+				}
+				result.add(start);
+				Collections.reverse(result);
+			}
+			for(GeographicPoint neighbor : getNeighbors(curr)){   
+				if(!visited.contains(neighbor)){
+					visited.add(neighbor);
+					parent.put(neighbor, curr);
+					queue.add(neighbor);
+				}
+			}
+		}
+		
 		
 		// Hook for visualization.  See writeup.
-		//nodeSearched.accept(next.getLocation());
+		 //nodeSearched.accept(next.getLocation());
 
-		return null;
+		return result;
 	}
 	
 
@@ -223,33 +270,39 @@ public class MapGraph {
 	
 	public static void main(String[] args)
 	{
-		System.out.print("Making a new map...");
-		MapGraph theMap = new MapGraph();
-		System.out.print("DONE. \nLoading the map...");
-		GraphLoader.loadRoadMap("data/testdata/simpletest.map", theMap);
-		System.out.println("DONE.");
-		
-		//testing
-		System.out.println("Vertices: "+ theMap.getNumVertices());
-		//System.out.println(" Get Vertices: "+ theMap.getVertices());
-		System.out.println("Edges: " + theMap.getNumEdges());
+//		System.out.print("Making a new map...");
+//		MapGraph theMap = new MapGraph();
+//		System.out.print("DONE. \nLoading the map...");
+//		GraphLoader.loadRoadMap("data/maps/san_diego.map", theMap);
+//		System.out.println("DONE.");
+//		
+//		//testing
+//		System.out.println("Vertices: "+ theMap.getNumVertices());
+//		//System.out.println(" Get Vertices: "+ theMap.getVertices());
+//		System.out.println("Edges: " + theMap.getNumEdges());
 		
 		// You can use this method for testing.  
 		
-		/* Use this code in Week 3 End of Week Quiz
+	    //Use this code in Week 3 End of Week Quiz
 		MapGraph theMap = new MapGraph();
 		System.out.print("DONE. \nLoading the map...");
 		GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
+		//GraphLoader.loadRoadMap("data/testdata/simpletest.map", theMap);
 		System.out.println("DONE.");
+
 
 		GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
 		GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
-		
-		
-		List<GeographicPoint> route = theMap.dijkstra(start,end);
-		List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
+		//GeographicPoint start = new GeographicPoint(4,2);
+		//GeographicPoint end = new GeographicPoint(4,-1);
+		//System.out.println(theMap.getNeighbors(start));
+		Consumer<GeographicPoint> nodeSearched = null;
+		System.out.println(theMap.bfs(start,end));
 
-		*/
+		//List<GeographicPoint> route = theMap.dijkstra(start,end);
+		//List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
+
+		
 		
 	}
 	
