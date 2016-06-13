@@ -44,6 +44,10 @@ public class GeographicPoint extends Double {
     {
     	return "Lat: " + getX() + ", Lon: " + getY();
     }
+
+	public GeographicPoint getLocation() {
+		return new GeographicPoint(this.getX(), this.getY());
+	}
 	
 	
 }

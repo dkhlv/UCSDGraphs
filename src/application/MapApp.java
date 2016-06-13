@@ -52,8 +52,8 @@ import gmapsfx.javascript.object.MapTypeIdEnum;
 public class MapApp extends Application
 					implements MapComponentInitializedListener {
 
-	protected GoogleMapView mapComponent;
-	protected GoogleMap map;
+  protected GoogleMapView mapComponent;
+  protected GoogleMap map;
   protected BorderPane bp;
   protected Stage primaryStage;
 

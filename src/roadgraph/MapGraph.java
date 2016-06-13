@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -176,13 +177,11 @@ public class MapGraph {
 		visited.add(start);
 		while(!queue.isEmpty()){
 			GeographicPoint curr = queue.remove();
+			// Hook for visualization.  See writeup.
+			nodeSearched.accept(curr.getLocation());
+			
 			if(curr.equals(goal)){
-				while(!goal.equals(start)){
-					result.add(goal);
-					goal = parent.get(goal);
-				}
-				result.add(start);
-				Collections.reverse(result);
+				result = returnParent(start, goal, result, parent);
 			}
 			for(GeographicPoint neighbor : getNeighbors(curr)){   
 				if(!visited.contains(neighbor)){
@@ -192,10 +191,6 @@ public class MapGraph {
 				}
 			}
 		}
-		
-		
-		// Hook for visualization.  See writeup.
-		 //nodeSearched.accept(next.getLocation());
 
 		return result;
 	}
@@ -227,11 +222,54 @@ public class MapGraph {
 										  GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
 		// TODO: Implement this method in WEEK 3
-
-		// Hook for visualization.  See writeup.
-		//nodeSearched.accept(next.getLocation());
 		
-		return null;
+		//initialization
+		PriorityQueue<MapPriorityPoint> pQueue = new PriorityQueue<MapPriorityPoint>();
+		HashSet<GeographicPoint> visited = new HashSet<GeographicPoint>();
+		HashMap<GeographicPoint, GeographicPoint> parent = new HashMap<GeographicPoint, GeographicPoint>();
+		HashMap<GeographicPoint, Double> distances = new HashMap<GeographicPoint,Double>();
+		List<GeographicPoint> result = new ArrayList<GeographicPoint>();
+		for(GeographicPoint p : getVertices()){
+			distances.put(p, Double.MAX_VALUE);
+		}
+		
+		//algorithm follows
+		pQueue.offer(new MapPriorityPoint(start, 0));
+		distances.put(start, 0.0);
+		while(!pQueue.isEmpty()){
+			GeographicPoint curr = pQueue.poll().getPoint();
+			// Hook for visualization.  See writeup.
+			nodeSearched.accept(curr.getLocation());
+			if(!visited.contains(curr)){
+				visited.add(curr);
+				if(curr.equals(goal)){
+					//return parent; we are done
+					result = returnParent(start, goal, result, parent);
+				}
+				for(GeographicPoint neighbor : getNeighbors(curr)){   
+					if(!visited.contains(neighbor)){
+						//if(path through curr to neighbor is shorter)
+						if(distances.get(curr) + curr.distance(neighbor)< distances.get(neighbor)){
+							double updated = distances.get(curr)+curr.distance(neighbor);
+							distances.put(neighbor, updated); //update distance
+							parent.put(neighbor, curr);
+							pQueue.offer(new MapPriorityPoint(neighbor, updated));
+						}
+					}
+				}
+			}
+		}
+		return result;
+	}
+
+	private List<GeographicPoint> returnParent(GeographicPoint start, GeographicPoint goal, List<GeographicPoint> result, HashMap<GeographicPoint, GeographicPoint> parent) {
+		while(!goal.equals(start)){
+			result.add(goal);
+			goal = parent.get(goal);
+		}
+		result.add(start);
+		Collections.reverse(result);
+		return result;
 	}
 
 	/** Find the path from start to goal using A-Star search
@@ -260,14 +298,48 @@ public class MapGraph {
 	{
 		// TODO: Implement this method in WEEK 3
 		
-		// Hook for visualization.  See writeup.
-		//nodeSearched.accept(next.getLocation());
-		
-		return null;
+		//initialization
+		PriorityQueue<MapPriorityPoint> pQueue = new PriorityQueue<MapPriorityPoint>();
+		HashSet<GeographicPoint> visited = new HashSet<GeographicPoint>();
+		HashMap<GeographicPoint, GeographicPoint> parent = new HashMap<GeographicPoint, GeographicPoint>();
+		HashMap<GeographicPoint, Double> distances = new HashMap<GeographicPoint,Double>();
+		List<GeographicPoint> result = new ArrayList<GeographicPoint>();
+		for(GeographicPoint p : getVertices()){
+			distances.put(p, Double.MAX_VALUE);
+		}
+
+		//algorithm follows
+		pQueue.offer(new MapPriorityPoint(start,start.distance(goal)));
+		distances.put(start, 0.0);
+		while(!pQueue.isEmpty()){
+			GeographicPoint curr = pQueue.poll().getPoint();
+			// Hook for visualization.  See writeup.
+			nodeSearched.accept(curr.getLocation());
+			if(!visited.contains(curr)){
+				visited.add(curr);
+				//System.out.println(" A star visited: " + curr);
+				if(curr.equals(goal)){
+					//return parent; we are done
+					result = returnParent(start, goal, result, parent);
+					break;
+				}
+				for(GeographicPoint neighbor : getNeighbors(curr)){   
+					if(!visited.contains(neighbor)){
+						//if(path through curr to neighbor is shorter)
+						if(distances.get(curr) + curr.distance(neighbor)< distances.get(neighbor)){
+							double updated = distances.get(curr)+curr.distance(neighbor);
+							distances.put(neighbor, updated); //update distance
+							parent.put(neighbor, curr);
+							pQueue.offer(new MapPriorityPoint(neighbor, updated+neighbor.distance(goal)));
+						}
+					}
+				}
+			}
+		}
+		return result;
 	}
 
-	
-	
+
 	public static void main(String[] args)
 	{
 //		System.out.print("Making a new map...");
@@ -286,21 +358,22 @@ public class MapGraph {
 	    //Use this code in Week 3 End of Week Quiz
 		MapGraph theMap = new MapGraph();
 		System.out.print("DONE. \nLoading the map...");
-		GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
-		//GraphLoader.loadRoadMap("data/testdata/simpletest.map", theMap);
+		//GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
+		GraphLoader.loadRoadMap("data/testdata/simpletest.map", theMap);
 		System.out.println("DONE.");
 
 
-		GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
-		GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
-		//GeographicPoint start = new GeographicPoint(4,2);
-		//GeographicPoint end = new GeographicPoint(4,-1);
-		//System.out.println(theMap.getNeighbors(start));
-		Consumer<GeographicPoint> nodeSearched = null;
+		//GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
+		//GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
+		GeographicPoint start = new GeographicPoint(7,3);
+		GeographicPoint end = new GeographicPoint(4,-1);
+		//System.out.println("Heuristic distance " + start.distance(end));
 		System.out.println(theMap.bfs(start,end));
 
-		//List<GeographicPoint> route = theMap.dijkstra(start,end);
-		//List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
+		List<GeographicPoint> route = theMap.dijkstra(start,end);
+		System.out.println(route);
+		List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
+		System.out.println(route2);
 
 		
 		
